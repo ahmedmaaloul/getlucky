@@ -1,0 +1,400 @@
+/* app/jobs/jobs.module.css */
+/* GetLucky.Jobs Dashboard - Brand Unified Styles */
+
+.container {
+    min-height: calc(100vh - 4rem);
+    padding: 2rem;
+    color: var(--foreground);
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, oklch(0.55 0.15 160), oklch(0.45 0.12 160));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--muted-foreground);
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+}
+
+.profileLink {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.profileLink:hover {
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+/* Quota Bar - Glassmorphism */
+.quotaBar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.quotaStat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.quotaLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+}
+
+.quotaValue {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.quotaDivider {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+}
+
+.quotaStatus {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.quotaStatus[data-status='ok'] {
+    color: var(--primary);
+}
+
+.quotaStatus[data-status='limit'] {
+    color: oklch(0.75 0.14 85);
+    /* Gold warning */
+}
+
+/* Section */
+.section {
+    margin-bottom: 2rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.createBtn {
+    padding: 0.625rem 1.25rem;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--primary-foreground);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.createBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0.9;
+}
+
+.createBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+}
+
+.emptyIcon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem;
+}
+
+.emptyState p {
+    color: var(--muted-foreground);
+    margin: 0 0 1.5rem;
+}
+
+/* Campaigns Grid */
+.campaignsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Campaign Card - Glassmorphism */
+.campaignCard {
+    padding: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.campaignCard:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.statusBadge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: white;
+}
+
+.appCount {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.campaignName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+}
+
+.campaignTarget {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    margin: 0 0 1.25rem;
+}
+
+.cardActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.actionBtn,
+.actionBtnPrimary,
+.actionBtnSecondary {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.actionBtn {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+}
+
+.actionBtn:hover {
+    opacity: 0.8;
+}
+
+.actionBtnPrimary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.actionBtnPrimary:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.actionBtnSecondary {
+    background: oklch(0.75 0.14 85 / 20%);
+    color: oklch(0.75 0.14 85);
+}
+
+/* Modal - Glassmorphism */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem;
+}
+
+/* Form */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroup label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+.formGroup input {
+    padding: 0.75rem 1rem;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--foreground);
+    font-size: 1rem;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.formGroup input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--background);
+}
+
+.formGroup input::placeholder {
+    color: var(--muted-foreground);
+}
+
+.error {
+    padding: 0.75rem 1rem;
+    background: oklch(0.577 0.245 27.325 / 10%);
+    border: 1px solid oklch(0.577 0.245 27.325 / 30%);
+    border-radius: var(--radius);
+    color: var(--destructive);
+    font-size: 0.875rem;
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.cancelBtn,
+.submitBtn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelBtn {
+    background: var(--secondary);
+    color: var(--muted-foreground);
+}
+
+.cancelBtn:hover {
+    background: var(--muted);
+}
+
+.submitBtn {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.submitBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    font-size: 1.125rem;
+    color: var(--muted-foreground);
+}
+
+/* Status Colors */
+:root {
+    --color-status-setup: oklch(0.75 0.14 85);
+    --color-status-tailoring: oklch(0.6 0.15 250);
+    --color-status-ready: oklch(0.55 0.15 160);
+    --color-status-active: oklch(0.55 0.15 160);
+    --color-status-paused: oklch(0.5 0 0);
+}

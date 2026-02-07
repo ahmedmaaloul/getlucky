@@ -1,0 +1,229 @@
+/* app/jobs/profile/profile.module.css */
+/* Master Profile Editor - Brand Unified Styles */
+
+.container {
+    min-height: calc(100vh - 4rem);
+    padding: 2rem;
+    color: var(--foreground);
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.backLink {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+    transition: opacity 0.2s;
+}
+
+.backLink:hover {
+    opacity: 0.8;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    background: linear-gradient(135deg, oklch(0.55 0.15 160), oklch(0.45 0.12 160));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--muted-foreground);
+    margin: 0;
+}
+
+.form {
+    max-width: 800px;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem;
+    color: var(--foreground);
+}
+
+.sectionHeader .sectionTitle {
+    margin: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.skillsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+
+    .grid,
+    .skillsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.formGroup label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+.formGroup input,
+.formGroup textarea {
+    padding: 0.75rem 1rem;
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--foreground);
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--background);
+}
+
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Cards for Experience/Education */
+.card {
+    position: relative;
+    padding: 1.25rem;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.removeBtn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: oklch(0.577 0.245 27.325 / 20%);
+    color: var(--destructive);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.removeBtn:hover {
+    background: oklch(0.577 0.245 27.325 / 40%);
+}
+
+.addBtn {
+    padding: 0.5rem 1rem;
+    background: oklch(0.55 0.15 160 / 15%);
+    border: 1px solid oklch(0.55 0.15 160 / 30%);
+    border-radius: var(--radius);
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addBtn:hover {
+    background: oklch(0.55 0.15 160 / 25%);
+    border-color: oklch(0.55 0.15 160 / 50%);
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.saveBtn {
+    padding: 0.875rem 2rem;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--primary-foreground);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.saveBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.success {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.error {
+    color: var(--destructive);
+    font-weight: 500;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 4rem);
+    color: var(--muted-foreground);
+    font-size: 1.125rem;
+}

@@ -1,0 +1,89 @@
+import { chromium, Browser, Page } from 'playwright';
+import { JobListing, ScraperConfig } from './types';
+import { JobProcessor } from './processor';
+import { getRandomDelay, getRandomUserAgent, sleep, withRetry } from './utils';
+
+export class JobScraperEngine {
+    async scrape(config: ScraperConfig): Promise<JobListing[]> {
+        if (config.type === 'api') {
+            return this.scrapeApi(config);
+        }
+
+        console.log(`Starting scrape for ${config.name}...`);
+        const browser = await chromium.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+
+        const context = await browser.newContext({
+            userAgent: getRandomUserAgent(),
+            viewport: { width: 1920, height: 1080 }
+        });
+
+        const page = await context.newPage();
+        const jobs: JobListing[] = [];
+
+        try {
+            await page.goto(config.baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+            // Simple wait for list
+            try {
+                await page.waitForSelector(config.selectors.list, { timeout: 10000 });
+            } catch (e) {
+                console.log(`List selector ${config.selectors.list} not found.`);
+            }
+
+            const items = await page.$$(config.selectors.list);
+            console.log(`Found ${items.length} items`);
+
+            for (const item of items) {
+                try {
+                    const titleEl = await item.$(config.selectors.item.title);
+                    const companyEl = await item.$(config.selectors.item.company);
+                    const locationEl = await item.$(config.selectors.item.location);
+                    const urlEl = await item.$(config.selectors.item.url);
+
+                    const title = titleEl ? await titleEl.innerText() : 'Unknown Title';
+                    const company = companyEl ? await companyEl.innerText() : 'Unknown Company';
+                    const location = locationEl ? await locationEl.innerText() : 'Unknown Location';
+                    const link = urlEl ? await urlEl.getAttribute('href') : '';
+
+                    if (title && link) {
+                        const fullUrl = link.startsWith('http') ? link : new URL(link, config.baseUrl).toString();
+                        const processed = JobProcessor.process(title, '', config.name, location);
+
+                        jobs.push({
+                            title,
+                            company,
+                            location,
+                            url: fullUrl,
+                            description: title,
+                            source: config.name,
+                            postedAt: new Date(),
+                            tags: processed.tags,
+                            salary: processed.salary || undefined,
+                            jobType: processed.jobType,
+                            seniority: processed.seniority,
+                            country: processed.country,
+                            language: processed.language
+                        });
+                    }
+                } catch (e) {
+                    // ignore item error
+                }
+            }
+
+        } catch (error) {
+            console.error(`Error scraping ${config.name}:`, error);
+        } finally {
+            await browser.close();
+        }
+
+        return jobs;
+    }
+
+    private async scrapeApi(config: ScraperConfig): Promise<JobListing[]> {
+        // Placeholder for API scraping logic
+        return [];
+    }
+}

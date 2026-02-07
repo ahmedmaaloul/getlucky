@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Job" ADD COLUMN "jobType" TEXT;
+ALTER TABLE "Job" ADD COLUMN "salary" TEXT;
+ALTER TABLE "Job" ADD COLUMN "seniority" TEXT;
+ALTER TABLE "Job" ADD COLUMN "tags" TEXT;
