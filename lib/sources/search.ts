@@ -5,7 +5,7 @@
  * result looks identical whether a human or an agent asked for it.
  */
 
-import { AGGREGATOR_SOURCES, fetchFromSources, getSource } from './registry';
+import { AGGREGATOR_SOURCES, defaultSources, fetchFromSources, getSource } from './registry';
 import type {
     Attribution,
     EmploymentType,
@@ -85,7 +85,7 @@ const TRACKING_PARAMS = new Set([
  * company's own domain identify the posting purely by `?gh_jid=`, so dropping
  * the query string would collapse an entire careers page into one job.
  */
-function canonicalUrl(url: string): string {
+export function canonicalUrl(url: string): string {
     try {
         const parsed = new URL(url);
         const host = parsed.host.toLowerCase().replace(/^www\./, '');
@@ -185,7 +185,7 @@ export function scoreJob(job: NormalizedJob, terms: string[]): number {
  * the interleaving is imposed. A keyword search skips this — there, relevance
  * is what the visitor asked to be ranked by.
  */
-function interleaveBySource(jobs: NormalizedJob[]): NormalizedJob[] {
+export function interleaveBySource(jobs: NormalizedJob[]): NormalizedJob[] {
     const bySource = new Map<string, NormalizedJob[]>();
     for (const job of jobs) {
         const bucket = bySource.get(job.sourceId);
@@ -214,8 +214,8 @@ function compareRecency(a: NormalizedJob, b: NormalizedJob): number {
     return right - left;
 }
 
-function resolveSources(ids: string[] | undefined): JobSource[] {
-    if (!ids?.length) return [...AGGREGATOR_SOURCES];
+async function resolveSources(ids: string[] | undefined): Promise<JobSource[]> {
+    if (!ids?.length) return defaultSources();
 
     const resolved: JobSource[] = [];
     for (const id of ids) {
@@ -228,7 +228,7 @@ function resolveSources(ids: string[] | undefined): JobSource[] {
 
 export async function searchJobs(options: JobSearchOptions = {}): Promise<JobSearchResponse> {
     const { sources: sourceIds, board, limit = DEFAULT_LIMIT, signal, ...filters } = options;
-    const sources = resolveSources(sourceIds);
+    const sources = await resolveSources(sourceIds);
 
     const results = await fetchFromSources(sources, {
         query: filters.query,

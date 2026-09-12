@@ -150,7 +150,7 @@ export default function AboutPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20">
-                                <Link href="https://www.ahmedmaaloul.engineer" target="_blank">
+                                <Link href="https://ahmedmaaloul.com" target="_blank">
                                     <Globe className="mr-2 h-4 w-4" />
                                     Visit My Portfolio
                                 </Link>

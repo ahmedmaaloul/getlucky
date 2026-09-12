@@ -8,6 +8,7 @@
 
 import { arbeitnow } from './providers/arbeitnow';
 import { ashby } from './providers/ashby';
+import { custom, loadLocalConfigs } from './providers/custom';
 import { greenhouse } from './providers/greenhouse';
 import { lever } from './providers/lever';
 import { remoteOk } from './providers/remoteok';
@@ -21,7 +22,19 @@ export const SOURCES: readonly JobSource[] = [
     greenhouse,
     lever,
     ashby,
+    custom,
 ] as const;
+
+/**
+ * Sources queried when the caller names none.
+ *
+ * `custom` is excluded until the operator actually configures it: a scraper
+ * run costs a browser launch, and in a clean checkout it would return nothing.
+ */
+export async function defaultSources(): Promise<JobSource[]> {
+    const configs = await loadLocalConfigs();
+    return configs.length > 0 ? [...AGGREGATOR_SOURCES] : AGGREGATOR_SOURCES.filter((s) => s.id !== 'custom');
+}
 
 /** Feeds that return a cross-company list without extra arguments. */
 export const AGGREGATOR_SOURCES = SOURCES.filter((source) => source.kind === 'aggregator');

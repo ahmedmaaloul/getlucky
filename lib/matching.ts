@@ -40,12 +40,20 @@ function seniorityDistance(a: Seniority | undefined, b: Seniority | undefined): 
     return Math.abs(left - right);
 }
 
-/** Tolerate the spellings that mean the same thing to a human reader. */
+/**
+ * Collapse the spellings that mean the same thing to a human reader.
+ *
+ * Punctuation goes first and the `js` suffix second, so "Node.js", "nodejs"
+ * and "node" all land on the same key. Doing it the other way round — as an
+ * earlier version did — stripped ".js" only when the dot was present, leaving
+ * "node" and "nodejs" as two different skills that never matched each other.
+ *
+ * Two-character inputs keep their suffix so that "js" itself does not
+ * normalize to the empty string.
+ */
 function normalizeSkill(skill: string): string {
-    return skill
-        .toLowerCase()
-        .replace(/\.js$/, '')
-        .replace(/[^a-z0-9+#]/g, '');
+    const compact = skill.toLowerCase().replace(/[^a-z0-9+#]/g, '');
+    return compact.length > 2 ? compact.replace(/js$/, '') : compact;
 }
 
 const WEIGHTS = {
@@ -97,15 +105,19 @@ export function matchJobToProfile(job: NormalizedJob, profile: CandidateProfile)
         const normalized = normalizeSkill(skill);
         if (!normalized) continue;
 
-        const needle = skill.toLowerCase();
+        // Look for both what the candidate typed and its collapsed form, so a
+        // profile listing "nodejs" still matches a posting that writes "Node.js".
+        const needles = [...new Set([skill.toLowerCase(), normalized])].filter(Boolean);
+        const appearsIn = (text: string) => needles.some((needle) => text.includes(needle));
+
         let strength = 0;
 
-        if (title.includes(needle)) {
+        if (appearsIn(title)) {
             strength = MATCH_STRENGTH.title;
             titleSkills.push(skill);
         } else if (normalizedTags.has(normalized)) {
             strength = MATCH_STRENGTH.tag;
-        } else if (description.includes(needle)) {
+        } else if (appearsIn(description)) {
             strength = MATCH_STRENGTH.description;
         }
 

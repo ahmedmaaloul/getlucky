@@ -317,20 +317,39 @@ export function parseSalary(raw?: string | null): SalaryRange | undefined {
     const isoMatch = text.match(/\b(USD|EUR|GBP|CHF|CAD|AUD|SEK|DKK|NOK|PLN|JPY|INR|BRL)\b/i);
     const currency = isoMatch ? isoMatch[1].toUpperCase() : symbol ? CURRENCY_SYMBOLS[symbol] : undefined;
 
-    const amounts = [...text.matchAll(/(\d[\d,.\s]*\d|\d)\s*(k)?/gi)]
-        .map((m) => parseAmount(`${m[1]}${m[2] ?? ''}`))
-        .filter((n): n is number => n !== undefined && n >= 100);
-
-    if (amounts.length === 0) return currency ? { currency, raw: text } : { raw: text };
-
+    // Period first, because it decides which numbers are plausible amounts.
     let period: SalaryRange['period'] | undefined;
     if (/\b(per hour|hourly|\/\s?h(r|our)?)\b/i.test(text)) period = 'Hourly';
     else if (/\b(per day|daily|\/\s?day|tjm)\b/i.test(text)) period = 'Daily';
     else if (/\b(per month|monthly|\/\s?mo(nth)?)\b/i.test(text)) period = 'Monthly';
     else if (/\b(per year|yearly|annually|per annum|\/\s?y(r|ear)?|pa)\b/i.test(text)) period = 'Yearly';
+
+    /**
+     * Smallest number worth treating as pay.
+     *
+     * The floor exists to keep stray figures — "3+ years", a street number, a
+     * year — out of the range. It has to scale with the period: a flat floor of
+     * 100 silently discarded every hourly rate.
+     */
+    const FLOORS: Record<NonNullable<SalaryRange['period']>, number> = {
+        Hourly: 5,
+        Daily: 50,
+        Weekly: 100,
+        Monthly: 300,
+        Yearly: 1000,
+    };
+    const floor = period ? FLOORS[period] : 100;
+
+    const amounts = [...text.matchAll(/(\d[\d,.\s]*\d|\d)\s*(k)?/gi)]
+        .map((m) => parseAmount(`${m[1]}${m[2] ?? ''}`))
+        .filter((n): n is number => n !== undefined && n >= floor);
+
+    // No figure parsed, but the currency or cadence may still be worth keeping.
+    if (amounts.length === 0) return { currency, period, raw: text };
+
     // A five-figure headline number is an annual salary in every currency we
     // handle; hourly and monthly rates are stated explicitly above.
-    else if (amounts[0] >= 10_000) period = 'Yearly';
+    if (!period && amounts[0] >= 10_000) period = 'Yearly';
 
     const min = Math.min(...amounts);
     const max = Math.max(...amounts);

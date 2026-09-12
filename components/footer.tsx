@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Github, Twitter } from 'lucide-react';
+import { Github, Globe } from 'lucide-react';
 import { PrivacyDialog } from './privacy-dialog';
 
 export function Footer() {
@@ -12,7 +12,7 @@ export function Footer() {
                             Get<span className="text-primary">Lucky</span>
                         </div>
                         <p className="text-sm text-muted-foreground max-w-xs">
-                            Aggregating the best tech opportunities from Germany, UK, and the Middle East. Stop searching, start finding.
+                            Live tech openings aggregated from public job APIs and company job boards. Searchable by humans and by agents over MCP.
                         </p>
                     </div>
 
@@ -39,11 +39,11 @@ export function Footer() {
                         © {new Date().getFullYear()} GetLucky. All rights reserved.
                     </p>
                     <div className="flex gap-4">
-                        <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <a href="https://github.com/ahmedmaaloul/getlucky" aria-label="Source on GitHub" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                             <Github className="h-4 w-4" />
                         </a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                            <Twitter className="h-4 w-4" />
+                        <a href="https://ahmedmaaloul.com" aria-label="Ahmed Maaloul's portfolio" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                            <Globe className="h-4 w-4" />
                         </a>
                     </div>
                 </div>

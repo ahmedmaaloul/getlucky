@@ -25,7 +25,7 @@ export function Navbar() {
                         <Link href="/about">About</Link>
                     </Button>
                     <Button variant="default" size="sm" asChild>
-                        <a href="https://github.com/ahmedmaaloul" target="_blank" rel="noopener noreferrer">Built by Ahmed</a>
+                        <a href="https://ahmedmaaloul.com" target="_blank" rel="noopener noreferrer">Built by Ahmed</a>
                     </Button>
                 </div>
             </div>
