@@ -363,16 +363,46 @@ export function parseSalary(raw?: string | null): SalaryRange | undefined {
     };
 }
 
+/**
+ * Does `haystack` contain `term` at the start of a word?
+ *
+ * Plain substring matching is wrong for job search in a way that is easy to
+ * miss: searching "rust" returns every posting mentioning "trust", which on a
+ * payments company's board is all of them. Anchoring the *start* of the term to
+ * a word boundary fixes that while keeping prefix matches that people expect —
+ * "develop" still finds "developer", and "rust" still finds "rustlang".
+ *
+ * A trailing boundary is deliberately not required, and the leading one is a
+ * character class rather than `\b` so that terms beginning with punctuation —
+ * ".net", "c++" — behave sensibly.
+ */
+const termPatterns = new Map<string, RegExp>();
+
+export function containsTerm(haystack: string, term: string): boolean {
+    if (!term) return false;
+
+    let pattern = termPatterns.get(term);
+    if (!pattern) {
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        pattern = new RegExp(`(?<![a-z0-9])${escaped}`, 'i');
+        // Queries are short and repeat across calls; the cache keeps this off
+        // the hot path without growing unboundedly in practice.
+        if (termPatterns.size < 500) termPatterns.set(term, pattern);
+    }
+
+    return pattern.test(haystack);
+}
+
 /** Case-insensitive match of every term in `query` against the given fields. */
 export function matchesQuery(query: string | undefined, ...fields: Array<string | undefined>): boolean {
     if (!query?.trim()) return true;
 
-    const haystack = fields.filter(Boolean).join(' ').toLowerCase();
+    const haystack = fields.filter(Boolean).join(' ');
     return query
         .toLowerCase()
         .split(/\s+/)
         .filter(Boolean)
-        .every((term) => haystack.includes(term));
+        .every((term) => containsTerm(haystack, term));
 }
 
 /**

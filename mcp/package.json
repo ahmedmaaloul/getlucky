@@ -1,6 +1,6 @@
 {
   "name": "getlucky-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for searching live tech job openings from public APIs and company ATS boards. No API key required.",
   "keywords": [
     "mcp",

@@ -6,6 +6,7 @@
  * afford to ask about hundreds of jobs.
  */
 
+import { containsTerm } from './sources/normalize';
 import type { NormalizedJob, Seniority } from './sources/types';
 
 export interface CandidateProfile {
@@ -108,7 +109,7 @@ export function matchJobToProfile(job: NormalizedJob, profile: CandidateProfile)
         // Look for both what the candidate typed and its collapsed form, so a
         // profile listing "nodejs" still matches a posting that writes "Node.js".
         const needles = [...new Set([skill.toLowerCase(), normalized])].filter(Boolean);
-        const appearsIn = (text: string) => needles.some((needle) => text.includes(needle));
+        const appearsIn = (text: string) => needles.some((needle) => containsTerm(text, needle));
 
         let strength = 0;
 

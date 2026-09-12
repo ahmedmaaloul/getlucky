@@ -5,6 +5,7 @@
  * result looks identical whether a human or an agent asked for it.
  */
 
+import { containsTerm } from './normalize';
 import { AGGREGATOR_SOURCES, defaultSources, fetchFromSources, getSource } from './registry';
 import type {
     Attribution,
@@ -168,10 +169,10 @@ export function scoreJob(job: NormalizedJob, terms: string[]): number {
     let score = 0;
     for (const term of terms) {
         if (title === term) score += 12;
-        else if (title.includes(term)) score += 8;
-        if (tags.includes(term)) score += 4;
-        if (company.includes(term)) score += 2;
-        if (description.includes(term)) score += 1;
+        else if (containsTerm(title, term)) score += 8;
+        if (containsTerm(tags, term)) score += 4;
+        if (containsTerm(company, term)) score += 2;
+        if (containsTerm(description, term)) score += 1;
     }
     return score;
 }

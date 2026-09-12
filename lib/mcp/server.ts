@@ -19,7 +19,7 @@ import type { EmploymentType, Seniority } from '../sources/types';
 import { formatJobDetail, formatMatches, formatSearchResponse } from './format';
 
 export const SERVER_NAME = 'getlucky';
-export const SERVER_VERSION = '1.0.0';
+export const SERVER_VERSION = '1.0.1';
 
 const SENIORITY_VALUES = ['Intern', 'Junior', 'Mid', 'Senior', 'Lead', 'Manager'] as const;
 const EMPLOYMENT_VALUES = [

@@ -9,6 +9,8 @@ import {
     inferRemote,
     inferSeniority,
     inferVisaSponsorship,
+    containsTerm,
+    matchesQuery,
     parseSalary,
     stripHtml,
 } from '@/lib/sources/normalize';
@@ -209,5 +211,44 @@ describe('extractTags', () => {
 
     it('does not match Go inside ordinary words', () => {
         expect(extractTags('a good opportunity, going places')).not.toContain('Go');
+    });
+});
+
+describe('containsTerm', () => {
+    it('does not match inside a longer word', () => {
+        // Regression: searching "rust" on a payments company's board returned 96
+        // results, because every posting mentions "trust".
+        expect(containsTerm('We build trust with merchants', 'rust')).toBe(false);
+        expect(containsTerm('Strong Rust experience', 'rust')).toBe(true);
+    });
+
+    it('still matches a prefix, which is what people expect', () => {
+        expect(containsTerm('Senior Developer', 'develop')).toBe(true);
+        expect(containsTerm('rustlang enthusiast', 'rust')).toBe(true);
+    });
+
+    it('handles terms that start with punctuation', () => {
+        expect(containsTerm('We use .NET and C++', '.net')).toBe(true);
+        expect(containsTerm('We use .NET and C++', 'c++')).toBe(true);
+    });
+
+    it('is case-insensitive', () => {
+        expect(containsTerm('KUBERNETES cluster', 'kubernetes')).toBe(true);
+    });
+});
+
+describe('matchesQuery', () => {
+    it('requires every term', () => {
+        expect(matchesQuery('senior rust', 'Senior Rust Engineer')).toBe(true);
+        expect(matchesQuery('senior rust', 'Junior Rust Engineer')).toBe(false);
+    });
+
+    it('matches nothing-in-particular when the query is empty', () => {
+        expect(matchesQuery(undefined, 'anything')).toBe(true);
+        expect(matchesQuery('   ', 'anything')).toBe(true);
+    });
+
+    it('does not let a substring collision satisfy a term', () => {
+        expect(matchesQuery('rust', 'Account Executive — we build trust')).toBe(false);
     });
 });
