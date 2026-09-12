@@ -7,6 +7,8 @@ companies' own applicant tracking systems, normalizes them into one shape, and
 exposes the result two ways: a web UI, and an **MCP server** so Claude and other
 agents can search jobs as a first-class tool.
 
+**Live:** [getlucky-ahmed-maalouls-projects.vercel.app](https://getlucky-ahmed-maalouls-projects.vercel.app)
+
 ```bash
 git clone https://github.com/ahmedmaaloul/getlucky.git
 cd getlucky && npm install && npm run dev
@@ -23,10 +25,10 @@ job data is live from the first page load.
 claude mcp add getlucky -- npx -y getlucky-mcp
 ```
 
-Or point any MCP client at a deployment over HTTP:
+Or point any MCP client at the hosted endpoint over HTTP — nothing to install:
 
 ```
-https://your-deployment.vercel.app/api/mcp
+https://getlucky-ahmed-maalouls-projects.vercel.app/api/mcp
 ```
 
 Then ask for what you actually want:

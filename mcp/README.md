@@ -43,5 +43,6 @@ personal data.
 
 ## Source
 
-Part of [GetLucky](https://github.com/ahmedmaaloul/getlucky), which also ships
-the web UI and a hosted HTTP MCP endpoint. MIT licensed.
+Part of [GetLucky](https://getlucky-ahmed-maalouls-projects.vercel.app) ([source](https://github.com/ahmedmaaloul/getlucky)),
+which also ships the web UI and a hosted HTTP MCP endpoint at
+`https://getlucky-ahmed-maalouls-projects.vercel.app/api/mcp` for clients that prefer not to install anything. MIT licensed.
