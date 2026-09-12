@@ -150,15 +150,29 @@ renders in the UI, with `rel` deliberately unset.
 
 ---
 
-## The AI layer is optional
+## The AI is the caller's, not the project's
 
-Set `GEMINI_API_KEY` and a free-text query gets expanded into related terms and
-mined for filters — *"senior rust roles in Berlin with visa"* becomes a
-structured search. Leave it unset and everything still works; you just get
-literal matching.
+GetLucky ships no model and pays for no inference. There is not a single AI call
+anywhere in the MCP server, the matching engine, or the normalization layer —
+`grep -ri gemini lib/mcp lib/sources lib/matching.ts` returns nothing.
 
-It is the only rate-limited part of the app, and only because a model call costs
-money. Job search itself is never rate limited.
+That is the point of the MCP design. When someone connects this to Claude, their
+Claude *is* the intelligence: it reads "find me senior k8s roles in Germany that
+sponsor visas, and tell me which are worth applying to", picks the tool call,
+and reasons over what comes back. The server only makes HTTP requests.
+
+| | Who understands the request | Who pays |
+| --- | --- | --- |
+| Web UI, no key | nobody — literal matching | nobody |
+| Web UI, `GEMINI_API_KEY` set | Gemini Flash | whoever deployed it |
+| **MCP** | **the user's own model** | **the user's own subscription** |
+
+**Deploy without `GEMINI_API_KEY`.** That is the intended configuration, not a
+degraded one: the site serves live jobs with working filters and zero inference
+cost. The optional Gemini layer only expands a typed query into related terms
+("k8s" also finds "Kubernetes") for people self-hosting who want it. It is the
+only part of the app that is rate limited, and only because it costs money.
+Search itself is never rate limited.
 
 ---
 
@@ -225,7 +239,9 @@ part is on you, and it is why nothing is shipped pre-configured.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui ·
-Model Context Protocol SDK · Vitest · optional Google Gemini
+Model Context Protocol SDK · Vitest
+
+No model is bundled and none is required.
 
 ## License
 
