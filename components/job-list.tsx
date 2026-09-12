@@ -67,7 +67,8 @@ export function JobList() {
 
     const handleSync = async () => {
         setSyncing(true)
-        await syncJobs()
+        // Pass user's search query and selected country to scraper
+        await syncJobs(query || undefined, country)
         await fetchJobs(true)
         setSyncing(false)
     }
@@ -107,15 +108,17 @@ export function JobList() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="All">All Countries</SelectItem>
+                                <SelectItem value="France">France</SelectItem>
                                 <SelectItem value="Germany">Germany</SelectItem>
+                                <SelectItem value="UK">UK</SelectItem>
                                 <SelectItem value="USA">USA</SelectItem>
                                 <SelectItem value="Canada">Canada</SelectItem>
-                                <SelectItem value="Japan">Japan</SelectItem>
-                                <SelectItem value="UK">UK</SelectItem>
+                                <SelectItem value="Netherlands">Netherlands</SelectItem>
+                                <SelectItem value="Switzerland">Switzerland</SelectItem>
                                 <SelectItem value="UAE">UAE</SelectItem>
-                                <SelectItem value="Saudi Arabia">Saudi Arabia</SelectItem>
-                                <SelectItem value="France">France</SelectItem>
-                                <SelectItem value="Global/Remote">Global/Remote</SelectItem>
+                                <SelectItem value="Japan">Japan</SelectItem>
+                                <SelectItem value="Australia">Australia</SelectItem>
+                                <SelectItem value="Global">Global/Remote</SelectItem>
                             </SelectContent>
                         </Select>
 

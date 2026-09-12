@@ -5,9 +5,10 @@ import { Job } from "@prisma/client"
 import { JobScraperEngine } from "@/lib/scraper/engine"
 import { scraperConfigs } from "@/lib/scraper/configs"
 import { JobService } from "@/lib/services/job-service"
+import { ScraperConfig } from "@/lib/scraper/types"
 
 // Try to load local configs (gitignored) for actual scraping
-let activeConfigs = scraperConfigs;
+let activeConfigs: ScraperConfig[] = scraperConfigs;
 try {
     // Dynamic import of local configs if they exist
     const localModule = require("@/lib/scraper/configs.local");
@@ -19,17 +20,31 @@ try {
     console.log("Using public scraper configs (demo mode - no active scrapers)");
 }
 
-export async function syncJobs() {
+/**
+ * Dynamic scraping with user-provided keyword and country filter
+ * @param keyword - Search term from user input (e.g., "React Developer")
+ * @param country - Country filter (e.g., "France", "Germany", "All")
+ */
+export async function syncJobs(keyword?: string, country?: string) {
     try {
-        console.log("Starting background sync...");
+        console.log(`Starting dynamic sync... Keyword: "${keyword || 'All'}", Country: "${country || 'All'}"`);
         const engine = new JobScraperEngine();
         const jobService = new JobService();
         let totalSaved = 0;
 
+        // Filter scrapers by country if specified
+        let configsToRun = activeConfigs;
+        if (country && country !== 'All') {
+            configsToRun = activeConfigs.filter(c =>
+                c.country === country || c.country === 'Global'
+            );
+            console.log(`Filtered to ${configsToRun.length} scrapers for ${country}`);
+        }
+
         // Run scrapers sequentially to avoid resource exhaustion
-        for (const config of activeConfigs) {
+        for (const config of configsToRun) {
             try {
-                const jobs = await engine.scrape(config);
+                const jobs = await engine.scrape(config, keyword);
                 if (jobs.length > 0) {
                     const { savedCount } = await jobService.saveJobs(jobs);
                     totalSaved += savedCount;

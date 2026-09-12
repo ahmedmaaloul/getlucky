@@ -32,9 +32,10 @@ export interface ScraperSelectors {
 
 export interface ScraperConfig {
     name: string;
-    baseUrl: string;
+    baseUrl: string; // Can contain {keyword} placeholder for dynamic search
     type: 'static' | 'spa' | 'api';
     selectors: ScraperSelectors;
+    country: string; // For filtering: 'France', 'Germany', 'UK', 'USA', 'Global', etc.
     companies?: string[]; // For company-specific scraping
     searchSelector?: string; // If search input interaction is needed
     companyFilter?: string; // internal use

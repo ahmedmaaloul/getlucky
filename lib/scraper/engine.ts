@@ -4,12 +4,17 @@ import { JobProcessor } from './processor';
 import { getRandomDelay, getRandomUserAgent, sleep, withRetry } from './utils';
 
 export class JobScraperEngine {
-    async scrape(config: ScraperConfig): Promise<JobListing[]> {
+    async scrape(config: ScraperConfig, keyword?: string): Promise<JobListing[]> {
         if (config.type === 'api') {
             return this.scrapeApi(config);
         }
 
-        console.log(`Starting scrape for ${config.name}...`);
+        // Replace {keyword} placeholder with actual search term
+        const searchKeyword = keyword || 'Software Engineer';
+        const encodedKeyword = encodeURIComponent(searchKeyword);
+        const targetUrl = config.baseUrl.replace('{keyword}', encodedKeyword);
+
+        console.log(`Starting scrape for ${config.name} with keyword: "${searchKeyword}"...`);
         const browser = await chromium.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -24,7 +29,7 @@ export class JobScraperEngine {
         const jobs: JobListing[] = [];
 
         try {
-            await page.goto(config.baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+            await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
             // Simple wait for list
             try {
