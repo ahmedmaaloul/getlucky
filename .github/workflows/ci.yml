@@ -36,9 +36,22 @@ jobs:
 
       - run: npm run build
 
-      # The published MCP server must keep building and still answer --version.
       - run: npm run build:mcp
-      - run: node mcp/dist/index.mjs --version
+
+      # Pack and install the MCP server somewhere with none of this repo's
+      # node_modules, then run it. Executing the bundle in place cannot catch a
+      # missing dependency, because every dependency is already installed here —
+      # which is how a build that bare-imported Playwright passed a smoke test
+      # and would still have been broken for every `npx getlucky-mcp` user.
+      - name: Verify the published package works in isolation
+        run: |
+          set -euo pipefail
+          tarball="$(cd mcp && npm pack --pack-destination "$RUNNER_TEMP" | tail -1)"
+          mkdir -p "$RUNNER_TEMP/pkgtest"
+          cd "$RUNNER_TEMP/pkgtest"
+          npm init -y > /dev/null
+          npm install "$RUNNER_TEMP/$tarball"
+          ./node_modules/.bin/getlucky-mcp --version
 
   audit:
     name: Dependency audit

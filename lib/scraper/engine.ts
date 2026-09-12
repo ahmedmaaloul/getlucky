@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { JobListing, ScraperConfig } from './types';
 import { JobProcessor } from './processor';
 import { getRandomUserAgent } from './utils';
@@ -15,6 +14,14 @@ export class JobScraperEngine {
         const targetUrl = config.baseUrl.replace('{keyword}', encodedKeyword);
 
         console.log(`Starting scrape for ${config.name} with keyword: "${searchKeyword}"...`);
+
+        // Imported here rather than at module scope because Playwright is
+        // genuinely optional: it is a devDependency, and the published
+        // getlucky-mcp package does not ship it at all. A static import would
+        // make Node resolve it the moment this module loads — which is what
+        // broke `npx getlucky-mcp` before it ever reached a tool call.
+        const { chromium } = await import('playwright');
+
         const browser = await chromium.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
