@@ -28,12 +28,20 @@ export const SOURCES: readonly JobSource[] = [
 /**
  * Sources queried when the caller names none.
  *
- * `custom` is excluded until the operator actually configures it: a scraper
- * run costs a browser launch, and in a clean checkout it would return nothing.
+ * `custom` stays out of the default fan-out even when configurations exist.
+ * Each one launches a browser and they run sequentially, so a dozen configs
+ * would add minutes to an ordinary page load. Two things must both be true
+ * before it joins a default search: configurations present, and
+ * `ENABLE_CUSTOM_SCRAPERS=true` set deliberately.
+ *
+ * Naming it explicitly — `sources: ['custom']` — always works regardless.
  */
 export async function defaultSources(): Promise<JobSource[]> {
+    const withoutCustom = AGGREGATOR_SOURCES.filter((source) => source.id !== 'custom');
+    if (process.env.ENABLE_CUSTOM_SCRAPERS !== 'true') return withoutCustom;
+
     const configs = await loadLocalConfigs();
-    return configs.length > 0 ? [...AGGREGATOR_SOURCES] : AGGREGATOR_SOURCES.filter((s) => s.id !== 'custom');
+    return configs.length > 0 ? [...AGGREGATOR_SOURCES] : withoutCustom;
 }
 
 /** Feeds that return a cross-company list without extra arguments. */

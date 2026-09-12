@@ -205,11 +205,17 @@ from that registry. See [CONTRIBUTING.md](CONTRIBUTING.md).
 ### Custom scrapers
 
 Put your own configurations in `lib/scraper/configs.local.ts` — gitignored, so
-they stay yours — and a `custom` source appears in the registry automatically.
+they stay yours.
 
 ```bash
 npm install playwright && npx playwright install chromium
 ```
+
+They stay out of ordinary searches until you opt in with
+`ENABLE_CUSTOM_SCRAPERS=true`, because each config launches a browser and they
+run one after another — a dozen of them would add minutes to a page load. You
+can always request the source explicitly instead, with `sources: ['custom']`,
+and skip the flag.
 
 Check the `robots.txt` and terms of service of anything you point it at. That
 part is on you, and it is why nothing is shipped pre-configured.

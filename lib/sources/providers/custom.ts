@@ -89,6 +89,7 @@ export const custom: JobSource = {
 
         const engine = new JobScraperEngine();
         const jobs: NormalizedJob[] = [];
+        const failures: string[] = [];
 
         // Sequential on purpose: each config launches a browser, and running
         // them in parallel exhausts memory on a small machine.
@@ -106,8 +107,15 @@ export const custom: JobSource = {
                 }
             } catch (error) {
                 // One broken selector must not take down the other configs.
-                console.error(`[custom] ${config.name} failed:`, error);
+                failures.push(`${config.name}: ${error instanceof Error ? error.message.split('\n')[0] : error}`);
             }
+        }
+
+        // Every config failing is a broken source, not an empty result. Saying
+        // so lets the caller report it as degraded rather than quietly showing
+        // a source that contributes nothing.
+        if (jobs.length === 0 && failures.length === configs.length) {
+            throw new Error(`all ${configs.length} custom scraper(s) failed — ${failures[0]}`);
         }
 
         return jobs;
