@@ -1,5 +1,6 @@
 import { fetchJson } from '../http';
 import {
+    cleanLabel,
     extractTags,
     inferCountry,
     inferEmploymentType,
@@ -61,12 +62,12 @@ export const greenhouse: JobSource = {
         const jobs: NormalizedJob[] = [];
 
         for (const entry of payload.jobs ?? []) {
-            const title = entry.title?.trim();
+            const title = cleanLabel(entry.title);
             if (!title || entry.id === undefined) continue;
 
             const description = stripHtml(entry.content ?? '');
             const location =
-                entry.location?.name?.trim() ||
+                cleanLabel(entry.location?.name) ||
                 entry.offices?.map((office) => office.name).filter(Boolean).join(', ') ||
                 undefined;
 
@@ -80,7 +81,7 @@ export const greenhouse: JobSource = {
                 sourceName: `Greenhouse · ${entry.company_name ?? slugToCompanyName(board)}`,
                 externalId: String(entry.id),
                 title,
-                company: entry.company_name?.trim() || slugToCompanyName(board),
+                company: cleanLabel(entry.company_name) || slugToCompanyName(board),
                 location,
                 country: inferCountry(location),
                 remote: inferRemote(location, title),

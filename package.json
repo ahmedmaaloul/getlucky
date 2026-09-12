@@ -7,6 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:mcp": "esbuild mcp/src/stdio.ts --bundle --platform=node --format=esm --target=node20 --packages=external --outfile=mcp/dist/index.mjs && chmod +x mcp/dist/index.mjs",
+    "mcp": "npm run build:mcp && node mcp/dist/index.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

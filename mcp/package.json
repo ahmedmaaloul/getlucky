@@ -1,0 +1,42 @@
+{
+  "name": "getlucky-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for searching live tech job openings from public APIs and company ATS boards. No API key required.",
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "claude",
+    "jobs",
+    "job-search",
+    "greenhouse",
+    "lever",
+    "ashby"
+  ],
+  "license": "MIT",
+  "author": "Ahmed Maaloul (https://github.com/ahmedmaaloul)",
+  "homepage": "https://github.com/ahmedmaaloul/getlucky#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmedmaaloul/getlucky.git",
+    "directory": "mcp"
+  },
+  "bugs": "https://github.com/ahmedmaaloul/getlucky/issues",
+  "type": "module",
+  "bin": {
+    "getlucky-mcp": "dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

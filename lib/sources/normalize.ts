@@ -55,6 +55,17 @@ export function stripHtml(input: string): string {
         .trim();
 }
 
+/**
+ * Tidy a short label (title, company, location).
+ *
+ * Several feeds hand these over HTML-escaped — "Machine Operator &amp;
+ * Labourers" — so they need the same entity decoding as a description body,
+ * minus the tag stripping.
+ */
+export function cleanLabel(input: string | undefined | null): string {
+    return decodeEntities(input ?? '').replace(/\s+/g, ' ').trim();
+}
+
 export function truncate(input: string, maxLength: number): string {
     if (input.length <= maxLength) return input;
     return `${input.slice(0, maxLength - 1).trimEnd()}…`;

@@ -1,5 +1,12 @@
 import { fetchJson } from '../http';
-import { extractTags, inferEmploymentType, inferSeniority, matchesQuery, stripHtml } from '../normalize';
+import {
+    cleanLabel,
+    extractTags,
+    inferEmploymentType,
+    inferSeniority,
+    matchesQuery,
+    stripHtml,
+} from '../normalize';
 import type { JobSource, NormalizedJob } from '../types';
 
 const ENDPOINT = 'https://remoteok.com/api';
@@ -61,7 +68,7 @@ export const remoteOk: JobSource = {
             if (isLegalNotice(entry)) continue;
 
             const description = stripHtml(entry.description ?? '');
-            const title = entry.position?.trim();
+            const title = cleanLabel(entry.position);
             if (!title || !entry.id) continue;
 
             if (!matchesQuery(options.query, title, entry.company, description, entry.tags?.join(' '))) {
@@ -78,9 +85,9 @@ export const remoteOk: JobSource = {
                 sourceName: 'Remote OK',
                 externalId: entry.id,
                 title,
-                company: entry.company?.trim() || 'Unknown',
+                company: cleanLabel(entry.company) || 'Unknown',
                 companyLogo: entry.company_logo || entry.logo || undefined,
-                location: entry.location?.trim() || undefined,
+                location: cleanLabel(entry.location) || undefined,
                 country: undefined,
                 // Every listing on Remote OK is, by construction, remote.
                 remote: true,

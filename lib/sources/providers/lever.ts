@@ -1,5 +1,6 @@
 import { fetchJson } from '../http';
 import {
+    cleanLabel,
     extractTags,
     inferCountry,
     inferEmploymentType,
@@ -92,7 +93,7 @@ export const lever: JobSource = {
         const jobs: NormalizedJob[] = [];
 
         for (const entry of payload ?? []) {
-            const title = entry.text?.trim();
+            const title = cleanLabel(entry.text);
             if (!title || !entry.id) continue;
 
             // Lever splits a posting across several fields; the bullet lists carry
@@ -109,7 +110,7 @@ export const lever: JobSource = {
                 .join('\n\n')
                 .trim();
 
-            const location = entry.categories?.location?.trim() || entry.categories?.allLocations?.join(', ');
+            const location = cleanLabel(entry.categories?.location) || entry.categories?.allLocations?.join(', ');
 
             if (!matchesQuery(options.query, title, description, location)) continue;
 

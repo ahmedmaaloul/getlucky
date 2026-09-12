@@ -1,5 +1,6 @@
 import { fetchJson } from '../http';
 import {
+    cleanLabel,
     extractTags,
     inferCountry,
     inferEmploymentType,
@@ -69,7 +70,7 @@ export const ashby: JobSource = {
             // `isListed: false` means the company has unpublished the posting.
             if (entry.isListed === false) continue;
 
-            const title = entry.title?.trim();
+            const title = cleanLabel(entry.title);
             if (!title || !entry.id) continue;
 
             const description = entry.descriptionPlain?.trim() || stripHtml(entry.descriptionHtml ?? '');

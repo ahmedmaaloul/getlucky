@@ -1,5 +1,6 @@
 import { fetchJson } from '../http';
 import {
+    cleanLabel,
     extractTags,
     inferCountry,
     inferEmploymentType,
@@ -68,10 +69,10 @@ export const remotive: JobSource = {
 
         for (const entry of payload.jobs ?? []) {
             const description = stripHtml(entry.description ?? '');
-            const title = entry.title?.trim();
+            const title = cleanLabel(entry.title);
             if (!title || entry.id === undefined) continue;
 
-            const location = entry.candidate_required_location?.trim();
+            const location = cleanLabel(entry.candidate_required_location) || undefined;
 
             jobs.push({
                 id: `remotive:${entry.id}`,
@@ -79,7 +80,7 @@ export const remotive: JobSource = {
                 sourceName: 'Remotive',
                 externalId: String(entry.id),
                 title,
-                company: entry.company_name?.trim() || 'Unknown',
+                company: cleanLabel(entry.company_name) || 'Unknown',
                 companyLogo: entry.company_logo_url || entry.company_logo || undefined,
                 location,
                 // "France, Japan, Turkey" style lists mean eligibility, not one

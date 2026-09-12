@@ -1,5 +1,6 @@
 import { fetchJson } from '../http';
 import {
+    cleanLabel,
     extractTags,
     inferCountry,
     inferEmploymentType,
@@ -50,7 +51,7 @@ export const arbeitnow: JobSource = {
 
         for (const entry of payload.data ?? []) {
             const description = stripHtml(entry.description ?? '');
-            const title = entry.title?.trim();
+            const title = cleanLabel(entry.title);
             if (!title || !entry.slug) continue;
 
             if (!matchesQuery(options.query, title, entry.company_name, description, entry.tags?.join(' '))) {
@@ -63,8 +64,8 @@ export const arbeitnow: JobSource = {
                 sourceName: 'Arbeitnow',
                 externalId: entry.slug,
                 title,
-                company: entry.company_name?.trim() || 'Unknown',
-                location: entry.location?.trim() || undefined,
+                company: cleanLabel(entry.company_name) || 'Unknown',
+                location: cleanLabel(entry.location) || undefined,
                 // Arbeitnow is a German board, so an on-site role whose location we
                 // cannot parse is overwhelmingly in Germany. Remote roles get no
                 // such default — they really could be anywhere.
