@@ -1,0 +1,14 @@
+# The CLI uploads local files, so secrets are excluded explicitly here rather
+# than relying on .gitignore alone. This deployment is meant to run with no
+# credentials at all — see the AI section of the README.
+.env
+.env.*
+!.env.example
+
+# Private scraper configurations stay on the machine that wrote them.
+*.local.ts
+
+# Nothing here needs to reach the build.
+tests
+.claude
+mcp/dist
