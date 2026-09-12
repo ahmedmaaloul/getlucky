@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GetLucky - Find Your Dream Job",
-  description: "Aggregating the best tech opportunities from Germany, UK, and the Middle East.",
+  title: "GetLucky — Live tech job search for humans and agents",
+  description: "Live tech openings aggregated from public job APIs and company job boards. Searchable by humans and by AI agents over MCP.",
 };
 
 import { Navbar } from "@/components/navbar";

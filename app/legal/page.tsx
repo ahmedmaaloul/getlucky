@@ -23,7 +23,7 @@ export default function LegalPage() {
                     </CardHeader>
                     <CardContent className="text-muted-foreground space-y-4">
                         <p>
-                            <strong>GetLucky</strong> is an automated aggregator built with Next.js 15, Tailwind CSS, and a custom scraping engine.
+                            <strong>GetLucky</strong> is an open-source aggregator built with Next.js, Tailwind CSS and the Model Context Protocol. It reads public, documented job APIs and companies&apos; own Greenhouse, Lever and Ashby boards — no key and no account required.
                         </p>
                         <p>
                             It solves the problem of &quot;tab fatigue&quot; by unifying job listings from multiple fragmented sources into a single, high-performance interface.
@@ -44,7 +44,7 @@ export default function LegalPage() {
                             This project is a demonstration of modern web engineering. No personal user data is stored or tracked.
                         </p>
                         <p>
-                            Job data is aggregated in real-time or cached for performance, respecting the `robots.txt` policies of source websites.
+                            Job data is fetched live from public APIs and cached briefly so that a burst of visitors does not become a burst of requests upstream. Sources whose terms ask for attribution are credited on every listing they provide.
                         </p>
                     </CardContent>
                 </Card>
@@ -59,7 +59,7 @@ export default function LegalPage() {
                     </CardHeader>
                     <CardContent className="text-muted-foreground space-y-4">
                         <p>
-                            This is a portfolio project. All job listings displayed are property of their respective owners and are shown for demonstration purposes.
+                            All job listings are the property of their respective employers and sources, and link back to the original posting. GetLucky stores no listings of its own and no personal data about visitors.
                         </p>
                     </CardContent>
                 </Card>
