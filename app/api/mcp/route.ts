@@ -20,6 +20,15 @@ import { createGetLuckyServer } from '@/lib/mcp/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/**
+ * A tool call fans out to several upstream APIs, and match_profile scans a few
+ * hundred postings before it answers. Typical responses land well under two
+ * seconds, but a slow upstream should not be cut off at a platform default of
+ * ten — an agent waiting on a tool would rather wait than get a truncated
+ * stream. 30s is comfortably inside the Hobby plan's ceiling.
+ */
+export const maxDuration = 30;
+
 async function handle(request: Request): Promise<Response> {
     const server = createGetLuckyServer();
     const transport = new WebStandardStreamableHTTPServerTransport({
