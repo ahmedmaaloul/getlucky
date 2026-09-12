@@ -6,33 +6,11 @@
  * full record available in `structuredContent` when the caller wants it.
  */
 
+import { formatRelativeAge, formatSalaryLabel } from '../format';
 import type { ProfileMatch } from '../matching';
 import type { JobSearchResponse } from '../sources/search';
 import type { NormalizedJob } from '../sources/types';
 
-function formatSalary(job: NormalizedJob): string | undefined {
-    const { salary } = job;
-    if (!salary) return undefined;
-    if (salary.min === undefined) return salary.raw;
-
-    const currency = salary.currency ?? '';
-    const round = (value: number) => (value >= 10_000 ? `${Math.round(value / 1000)}k` : String(value));
-
-    const range = salary.max === undefined ? round(salary.min) : `${round(salary.min)}–${round(salary.max)}`;
-    return `${currency} ${range}${salary.period ? ` / ${salary.period.toLowerCase()}` : ''}`.trim();
-}
-
-function formatAge(postedAt: string | undefined): string | undefined {
-    if (!postedAt) return undefined;
-    const posted = Date.parse(postedAt);
-    if (Number.isNaN(posted)) return undefined;
-
-    const days = Math.floor((Date.now() - posted) / 86_400_000);
-    if (days <= 0) return 'today';
-    if (days === 1) return 'yesterday';
-    if (days < 30) return `${days}d ago`;
-    return `${Math.floor(days / 30)}mo ago`;
-}
 
 export function formatJobLine(job: NormalizedJob, index?: number): string {
     const prefix = index === undefined ? '' : `${index}. `;
@@ -42,8 +20,8 @@ export function formatJobLine(job: NormalizedJob, index?: number): string {
         job.remote ? 'Remote' : undefined,
         job.seniority,
         job.employmentType,
-        formatSalary(job),
-        formatAge(job.postedAt),
+        formatSalaryLabel(job),
+        formatRelativeAge(job.postedAt),
     ].filter(Boolean);
 
     const lines = [
@@ -100,8 +78,8 @@ export function formatJobDetail(job: NormalizedJob): string {
         ['Remote', job.remote ? 'yes' : 'no'],
         ['Seniority', job.seniority],
         ['Contract', job.employmentType],
-        ['Salary', formatSalary(job)],
-        ['Posted', job.postedAt ? `${job.postedAt} (${formatAge(job.postedAt)})` : undefined],
+        ['Salary', formatSalaryLabel(job)],
+        ['Posted', job.postedAt ? `${job.postedAt} (${formatRelativeAge(job.postedAt)})` : undefined],
         ['Source', job.sourceName],
         ['URL', job.url],
         ['Apply', job.applyUrl !== job.url ? job.applyUrl : undefined],

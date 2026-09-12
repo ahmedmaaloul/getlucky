@@ -355,3 +355,62 @@ export function matchesQuery(query: string | undefined, ...fields: Array<string 
         .filter(Boolean)
         .every((term) => haystack.includes(term));
 }
+
+/**
+ * Visa sponsorship, read off the posting text.
+ *
+ * Returns `undefined` — not `false` — when the posting is silent, which is the
+ * common case. That distinction matters: "does not say" must never be
+ * presented to a candidate as "will not sponsor".
+ *
+ * The negative patterns are checked first because a posting that says
+ * "relocation support available, but we cannot sponsor visas" is a no.
+ */
+const VISA_NEGATIVE =
+    /\b(no visa sponsorship|cannot sponsor|can't sponsor|unable to sponsor|not able to sponsor|does not sponsor|without sponsorship|must (already )?(have|hold) (the )?(right to work|work authori[sz]ation|valid work permit)|authori[sz]ed to work in .{0,30} without sponsorship)\b/i;
+
+const VISA_POSITIVE =
+    /\b(visa sponsorship|sponsor(ship)? (is )?(available|provided|offered)|we sponsor|will sponsor|sponsor(ing)? visas?|relocation (package|support|assistance|bonus)|blue card|work permit (support|sponsorship|assistance)|help(s|ing)? (you )?(with )?(your )?(visa|relocation))\b/i;
+
+export function inferVisaSponsorship(...inputs: Array<string | undefined>): boolean | undefined {
+    const haystack = inputs.filter(Boolean).join(' ');
+    if (!haystack.trim()) return undefined;
+
+    if (VISA_NEGATIVE.test(haystack)) return false;
+    if (VISA_POSITIVE.test(haystack)) return true;
+    return undefined;
+}
+
+/**
+ * Posting language, by stopword frequency.
+ *
+ * Job descriptions mix languages constantly — a German posting will still say
+ * "Software Engineer" and list English tool names — so this counts function
+ * words, which are the part that does not get borrowed, rather than looking
+ * for any single marker.
+ */
+const LANGUAGE_STOPWORDS: ReadonlyArray<readonly [string, RegExp]> = [
+    ['German', /\b(und|oder|mit|für|von|bei|dem|der|die|das|wir|sie|ist|sind|eine|einen|nicht|auch|werden|haben|deine|unsere)\b/gi],
+    ['French', /\b(et|ou|avec|pour|de|du|des|le|la|les|nous|vous|est|sont|une|un|ne|pas|aussi|votre|notre|vos|nos)\b/gi],
+    ['Spanish', /\b(y|o|con|para|de|del|el|la|los|las|nosotros|es|son|una|un|no|también|tu|nuestro)\b/gi],
+    ['English', /\b(and|or|with|for|of|the|we|you|is|are|a|an|not|also|your|our|will|have)\b/gi],
+];
+
+/** Below this many function-word hits the sample is too short to judge. */
+const LANGUAGE_MIN_HITS = 6;
+
+export function inferLanguage(...inputs: Array<string | undefined>): string | undefined {
+    const haystack = inputs.filter(Boolean).join(' ');
+    if (haystack.trim().length < 60) return undefined;
+
+    let best: { language: string; hits: number } | undefined;
+
+    for (const [language, pattern] of LANGUAGE_STOPWORDS) {
+        // A global regex carries lastIndex between calls; match() with /g does not.
+        const hits = haystack.match(pattern)?.length ?? 0;
+        if (!best || hits > best.hits) best = { language, hits };
+    }
+
+    if (!best || best.hits < LANGUAGE_MIN_HITS) return undefined;
+    return best.language;
+}

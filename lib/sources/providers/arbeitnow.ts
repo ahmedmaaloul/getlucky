@@ -5,7 +5,9 @@ import {
     inferCountry,
     inferEmploymentType,
     inferRemote,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     matchesQuery,
     stripHtml,
 } from '../normalize';
@@ -79,6 +81,8 @@ export const arbeitnow: JobSource = {
                 employmentType:
                     inferEmploymentType(entry.job_types?.join(' ') ?? '', '') ??
                     inferEmploymentType(title, description),
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.created_at ? new Date(entry.created_at * 1000).toISOString() : undefined,
                 attribution: ATTRIBUTION,
             });

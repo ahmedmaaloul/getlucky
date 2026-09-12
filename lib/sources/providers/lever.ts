@@ -4,7 +4,9 @@ import {
     extractTags,
     inferCountry,
     inferEmploymentType,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     matchesQuery,
     stripHtml,
 } from '../normalize';
@@ -143,6 +145,8 @@ export const lever: JobSource = {
                 employmentType:
                     (commitment ? COMMITMENT_MAP[commitment] : undefined) ??
                     inferEmploymentType(title, description),
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.createdAt ? new Date(entry.createdAt).toISOString() : undefined,
             });
 

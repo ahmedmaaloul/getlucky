@@ -4,7 +4,9 @@ import {
     extractTags,
     inferCountry,
     inferEmploymentType,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     matchesQuery,
     parseSalary,
     stripHtml,
@@ -110,6 +112,8 @@ export const ashby: JobSource = {
                     entry.compensation?.scrapeableCompensationSalarySummary ??
                         entry.compensation?.compensationTierSummary,
                 ),
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.publishedAt,
             });
 

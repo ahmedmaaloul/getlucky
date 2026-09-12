@@ -23,6 +23,13 @@ export interface JobSearchFilters {
     employmentType?: EmploymentType;
     /** Every tag must be present (AND), matched case-insensitively. */
     tags?: string[];
+    /**
+     * Keep only postings that state sponsorship. Postings that say nothing are
+     * excluded rather than assumed hostile — see NormalizedJob.visaSponsorship.
+     */
+    visaSponsorship?: boolean;
+    /** Language the posting is written in, e.g. "German". */
+    language?: string;
     /** Floor on the low end of the range, in the salary's own currency. */
     minSalary?: number;
     postedWithinDays?: number;
@@ -120,6 +127,11 @@ export function matchesFilters(job: NormalizedJob, filters: JobSearchFilters): b
     if (filters.seniority && job.seniority !== filters.seniority) return false;
     if (filters.employmentType && job.employmentType !== filters.employmentType) return false;
 
+    if (filters.visaSponsorship !== undefined && job.visaSponsorship !== filters.visaSponsorship) {
+        return false;
+    }
+    if (filters.language && job.language !== filters.language) return false;
+
     if (filters.tags?.length) {
         const owned = job.tags.map((tag) => tag.toLowerCase());
         const hasEvery = filters.tags.every((tag) => owned.includes(tag.toLowerCase()));
@@ -162,6 +174,38 @@ export function scoreJob(job: NormalizedJob, terms: string[]): number {
         if (description.includes(term)) score += 1;
     }
     return score;
+}
+
+/**
+ * Round-robin the sources so a browse view shows the aggregation working.
+ *
+ * Sorting purely by recency lets one source own the whole first page: Arbeitnow
+ * stamps every posting with the current day, so it buries three other feeds
+ * before a visitor sees them. Each source keeps its own internal order; only
+ * the interleaving is imposed. A keyword search skips this — there, relevance
+ * is what the visitor asked to be ranked by.
+ */
+function interleaveBySource(jobs: NormalizedJob[]): NormalizedJob[] {
+    const bySource = new Map<string, NormalizedJob[]>();
+    for (const job of jobs) {
+        const bucket = bySource.get(job.sourceId);
+        if (bucket) bucket.push(job);
+        else bySource.set(job.sourceId, [job]);
+    }
+
+    if (bySource.size <= 1) return jobs;
+
+    const buckets = [...bySource.values()];
+    const interleaved: NormalizedJob[] = [];
+
+    for (let round = 0; interleaved.length < jobs.length; round++) {
+        for (const bucket of buckets) {
+            const job = bucket[round];
+            if (job) interleaved.push(job);
+        }
+    }
+
+    return interleaved;
 }
 
 function compareRecency(a: NormalizedJob, b: NormalizedJob): number {
@@ -222,6 +266,8 @@ export async function searchJobs(options: JobSearchOptions = {}): Promise<JobSea
         return compareRecency(a, b);
     });
 
+    const ordered = terms.length > 0 ? matched : interleaveBySource(matched);
+
     const attributions: Attribution[] = [];
     for (const source of sources) {
         if (source.attribution && !attributions.some((a) => a.url === source.attribution!.url)) {
@@ -230,7 +276,7 @@ export async function searchJobs(options: JobSearchOptions = {}): Promise<JobSea
     }
 
     return {
-        jobs: matched.slice(0, limit),
+        jobs: ordered.slice(0, limit),
         sources: results.map((result) => ({
             id: result.sourceId,
             name: result.sourceName,

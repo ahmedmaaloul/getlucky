@@ -72,6 +72,15 @@ export interface NormalizedJob {
     seniority?: Seniority;
     employmentType?: EmploymentType;
     salary?: SalaryRange;
+    /**
+     * Whether the posting offers visa sponsorship.
+     *
+     * `undefined` means the posting does not say — which is most of them. Never
+     * collapse that into `false` when showing this to a candidate.
+     */
+    visaSponsorship?: boolean;
+    /** Language the posting is written in, e.g. "German". */
+    language?: string;
     /** ISO 8601. */
     postedAt?: string;
 

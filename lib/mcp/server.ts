@@ -51,6 +51,17 @@ const filterShape = {
         .number()
         .optional()
         .describe('Floor on the advertised low end. Drops jobs with no stated salary.'),
+    visa_sponsorship: z
+        .boolean()
+        .optional()
+        .describe(
+            'true keeps only postings that explicitly offer sponsorship. Most postings say ' +
+                'nothing either way and are excluded by this filter rather than assumed to refuse.',
+        ),
+    language: z
+        .string()
+        .optional()
+        .describe('Language the posting is written in, e.g. "German" — useful for local-market roles.'),
     posted_within_days: z.number().int().positive().optional(),
 };
 
@@ -105,6 +116,8 @@ export function createGetLuckyServer(): McpServer {
                 employmentType: args.employment_type as EmploymentType | undefined,
                 tags: args.tags,
                 minSalary: args.min_salary,
+                visaSponsorship: args.visa_sponsorship,
+                language: args.language,
                 postedWithinDays: args.posted_within_days,
                 limit: args.limit ?? 20,
             });

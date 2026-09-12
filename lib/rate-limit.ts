@@ -1,95 +1,108 @@
-import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
+/**
+ * Rate limiting for the optional AI layer.
+ *
+ * The privacy design is the point here, and it is worth stating plainly:
+ *
+ *   - The caller's IP is never stored. It is hashed with a secret salt *and
+ *     today's date*, so the same visitor produces a different key tomorrow.
+ *     Correlating a person's usage across days is not merely discouraged, it
+ *     is not computable from what we keep.
+ *   - Counters live in process memory and are dropped as soon as their day
+ *     rolls over. Nothing is written to disk or to a database.
+ *   - No cookies, no fingerprinting, no analytics.
+ *
+ * Only the AI enrichment path is limited. Job search itself reads public APIs
+ * and is not rate limited by us.
+ */
+
+import crypto from 'node:crypto';
+import { headers } from 'next/headers';
+
+export interface RateLimitConfig {
+    /** Requests allowed per visitor per day. */
+    perVisitorPerDay: number;
+    /** Distinct visitors allowed per day, as a spend ceiling on the AI provider. */
+    visitorsPerDay: number;
+}
+
+export const DEFAULT_RATE_LIMIT: RateLimitConfig = {
+    perVisitorPerDay: Number(process.env.AI_REQUESTS_PER_VISITOR_PER_DAY ?? 20),
+    visitorsPerDay: Number(process.env.AI_VISITORS_PER_DAY ?? 500),
+};
+
+export type RateLimitReason = 'USER_QUOTA_EXCEEDED' | 'GLOBAL_QUOTA_EXCEEDED';
+
+export class RateLimitError extends Error {
+    constructor(readonly reason: RateLimitReason) {
+        super(reason);
+        this.name = 'RateLimitError';
+    }
+}
+
+interface DayBucket {
+    date: string;
+    counts: Map<string, number>;
+}
+
+let bucket: DayBucket = { date: '', counts: new Map() };
+
+function today(): string {
+    return new Date().toISOString().slice(0, 10);
+}
 
 /**
- * Enforces rate limits for AI usage.
- * - Global Limit: Max 5 unique visitors per day.
- * - User Limit: Max 1 queries per IP per day.
- * - Bypass: AI_BYPASS_KEY env var.
+ * Ephemeral per-day visitor key.
  *
- * GDPR NOTE: IPs are hashed (anonymized) before storage.
+ * Without a configured IP_SALT the salt is random per process, which makes the
+ * key even less linkable — at the cost of resetting counters on restart. That
+ * is the right default: a missing secret should fail towards privacy, not
+ * towards a predictable hash that could be brute-forced over the IPv4 space.
  */
-import crypto from 'crypto';
+const FALLBACK_SALT = crypto.randomBytes(32).toString('hex');
 
-export async function checkAiRateLimit() {
-    if (process.env.AI_BYPASS_KEY) return { allowed: true };
+export function visitorKey(ip: string, date = today()): string {
+    const salt = process.env.IP_SALT || FALLBACK_SALT;
+    return crypto.createHash('sha256').update(`${ip}${date}${salt}`).digest('hex');
+}
 
-    const headersList = await headers(); // Await the headers() call
-    // Use x-forwarded-for for Vercel/proxies, fallback to '127.0.0.1' for local
-    const rawIp = headersList.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+function rollOver(date: string): void {
+    if (bucket.date !== date) bucket = { date, counts: new Map() };
+}
 
-    // GDPR PLUS: Daily Ephemeral Hash
-    // We include 'today' in the hash. This means the same user will have a DIFFERENT ID tomorrow.
-    // It is mathematically impossible for us to track usage history across days.
-    const ip = crypto.createHash('sha256').update(rawIp + today + (process.env.IP_SALT || 'salt')).digest('hex');
+/** Pure core, so the policy can be tested without a request context. */
+export function consume(
+    ip: string,
+    config: RateLimitConfig = DEFAULT_RATE_LIMIT,
+    date = today(),
+): { allowed: true; remaining: number } {
+    rollOver(date);
 
-    // GDPR PLUS: Data Minimization (Lazy Cleanup)
-    // 10% chance to wipe all old data from the database. We strictly only keep TODAY's data.
-    if (Math.random() < 0.1) {
-        prisma.aiUsage.deleteMany({
-            where: { date: { not: today } }
-        }).catch(err => console.error("Cleanup failed", err));
+    const key = visitorKey(ip, date);
+    const used = bucket.counts.get(key) ?? 0;
+
+    if (used === 0 && bucket.counts.size >= config.visitorsPerDay) {
+        throw new RateLimitError('GLOBAL_QUOTA_EXCEEDED');
+    }
+    if (used >= config.perVisitorPerDay) {
+        throw new RateLimitError('USER_QUOTA_EXCEEDED');
     }
 
-    try {
-        // 1. Check Global Visitor Cap (Unique IPs today)
-        // We only care if this is a *new* user.
-        const userUsage = await prisma.aiUsage.findUnique({
-            where: {
-                ip_date: {
-                    ip,
-                    date: today,
-                },
-            },
-        });
+    bucket.counts.set(key, used + 1);
+    return { allowed: true, remaining: config.perVisitorPerDay - used - 1 };
+}
 
-        if (!userUsage) {
-            // New visitor for today. Check if we have room.
-            const uniqueVisitorsToday = await prisma.aiUsage.count({
-                where: {
-                    date: today,
-                },
-            });
+export async function checkAiRateLimit(config: RateLimitConfig = DEFAULT_RATE_LIMIT) {
+    const headersList = await headers();
+    // Behind a proxy the client address is the first hop in x-forwarded-for.
+    const ip =
+        headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        headersList.get('x-real-ip')?.trim() ||
+        '127.0.0.1';
 
-            if (uniqueVisitorsToday >= 5) {
-                throw new Error("GLOBAL_QUOTA_EXCEEDED");
-            }
-        }
+    return consume(ip, config);
+}
 
-        // 2. Check Per-User Cap
-        if (userUsage && userUsage.count >= 1) {
-            throw new Error("USER_QUOTA_EXCEEDED");
-        }
-
-        // 3. Record Usage
-        await prisma.aiUsage.upsert({
-            where: {
-                ip_date: {
-                    ip,
-                    date: today,
-                },
-            },
-            update: {
-                count: {
-                    increment: 1
-                }
-            },
-            create: {
-                ip,
-                date: today,
-                count: 1,
-            },
-        });
-
-        return { allowed: true };
-    } catch (error: any) {
-        if (error.message === "GLOBAL_QUOTA_EXCEEDED" || error.message === "USER_QUOTA_EXCEEDED") {
-            throw error;
-        }
-        console.error("Rate limit check failed:", error);
-        // If DB fails, fail open or closed? stick to fail open for demo unless strict.
-        // Let's fail open to avoid breaking it completely if DB has issues, but log it.
-        return { allowed: true };
-    }
+/** Test seam. */
+export function resetRateLimit(): void {
+    bucket = { date: '', counts: new Map() };
 }

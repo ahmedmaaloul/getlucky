@@ -5,7 +5,9 @@ import {
     inferCountry,
     inferEmploymentType,
     inferRemote,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     matchesQuery,
     stripHtml,
 } from '../normalize';
@@ -91,6 +93,8 @@ export const greenhouse: JobSource = {
                 tags: [...new Set([...(departments ?? []), ...extractTags(title, description)])],
                 seniority: inferSeniority(title, description),
                 employmentType: inferEmploymentType(title, description),
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.first_published ?? entry.updated_at,
             });
 

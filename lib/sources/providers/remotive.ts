@@ -4,7 +4,9 @@ import {
     extractTags,
     inferCountry,
     inferEmploymentType,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     parseSalary,
     stripHtml,
 } from '../normalize';
@@ -102,6 +104,8 @@ export const remotive: JobSource = {
                     (entry.job_type ? JOB_TYPE_MAP[entry.job_type] : undefined) ??
                     inferEmploymentType(title, description),
                 salary: parseSalary(entry.salary),
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.publication_date
                     ? new Date(entry.publication_date).toISOString()
                     : undefined,

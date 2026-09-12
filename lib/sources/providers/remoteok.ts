@@ -3,7 +3,9 @@ import {
     cleanLabel,
     extractTags,
     inferEmploymentType,
+    inferLanguage,
     inferSeniority,
+    inferVisaSponsorship,
     matchesQuery,
     stripHtml,
 } from '../normalize';
@@ -99,6 +101,8 @@ export const remoteOk: JobSource = {
                 seniority: inferSeniority(title, description),
                 employmentType: inferEmploymentType(title, description),
                 salary: min ? { min, max, currency: 'USD', period: 'Yearly' } : undefined,
+                visaSponsorship: inferVisaSponsorship(description),
+                language: inferLanguage(description),
                 postedAt: entry.date ?? new Date(entry.epoch * 1000).toISOString(),
                 attribution: ATTRIBUTION,
             });
