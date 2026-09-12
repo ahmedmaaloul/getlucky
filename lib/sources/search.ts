@@ -37,6 +37,15 @@ export interface JobSearchFilters {
 }
 
 export interface JobSearchOptions extends JobSearchFilters {
+    /**
+     * Alternative terms, any one of which makes a job a match.
+     *
+     * This is what query expansion produces: searching "k8s" should also find
+     * postings that only ever write "Kubernetes". Because the semantics are OR
+     * — unlike `query`, where every term must appear — providers are asked for
+     * their unfiltered feed and the matching happens here.
+     */
+    anyTerms?: string[];
     /** Source ids to query. Defaults to every aggregator. */
     sources?: string[];
     /** Board token, required when `sources` names an ATS. */
@@ -228,19 +237,27 @@ async function resolveSources(ids: string[] | undefined): Promise<JobSource[]> {
 }
 
 export async function searchJobs(options: JobSearchOptions = {}): Promise<JobSearchResponse> {
-    const { sources: sourceIds, board, limit = DEFAULT_LIMIT, signal, ...filters } = options;
+    const { sources: sourceIds, board, limit = DEFAULT_LIMIT, signal, anyTerms, ...filters } = options;
     const sources = await resolveSources(sourceIds);
 
+    const expansions = anyTerms?.filter((term) => term.trim()) ?? [];
+    const expanding = expansions.length > 0;
+
     const results = await fetchFromSources(sources, {
-        query: filters.query,
+        // With expansions in play the provider must not pre-filter: a source
+        // that only knows the literal query would drop the very postings the
+        // expansion exists to reach.
+        query: expanding ? undefined : filters.query,
         board,
         signal,
         // Over-fetch per source so that filtering downstream still has enough
         // candidates to fill `limit` after duplicates and misses are dropped.
-        limit: Math.max(limit * 3, 100),
+        limit: expanding ? Math.max(limit * 8, 300) : Math.max(limit * 3, 100),
     });
 
-    const terms = filters.query?.toLowerCase().split(/\s+/).filter(Boolean) ?? [];
+    const terms = expanding
+        ? [...new Set(expansions.map((term) => term.toLowerCase()))]
+        : (filters.query?.toLowerCase().split(/\s+/).filter(Boolean) ?? []);
     const seenUrls = new Set<string>();
     const seenIdentities = new Set<string>();
     const matched: NormalizedJob[] = [];
@@ -248,6 +265,12 @@ export async function searchJobs(options: JobSearchOptions = {}): Promise<JobSea
     for (const result of results) {
         for (const job of result.jobs) {
             if (!matchesFilters(job, filters)) continue;
+
+            // OR across expansions: one hit is enough to be relevant.
+            if (expanding) {
+                const haystack = `${job.title} ${job.company} ${job.tags.join(' ')} ${job.description}`;
+                if (!expansions.some((term) => containsTerm(haystack, term))) continue;
+            }
 
             const urlKey = canonicalUrl(job.url);
             const idKey = identityKey(job);

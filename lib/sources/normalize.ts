@@ -130,6 +130,17 @@ const COUNTRY_PATTERNS: ReadonlyArray<readonly [string, RegExp]> = [
     ['United Arab Emirates', /\b(dubai|abu dhabi|sharjah)\b/i],
 ];
 
+/**
+ * Every country name `inferCountry` can return.
+ *
+ * Derived from the pattern table rather than written out again, so anything
+ * that needs to offer countries — a filter dropdown, an AI prompt — cannot
+ * drift out of sync with what jobs are actually tagged with.
+ */
+export const KNOWN_COUNTRIES: readonly string[] = [
+    ...new Set(COUNTRY_PATTERNS.map(([country]) => country)),
+].sort();
+
 export function inferCountry(...inputs: Array<string | undefined>): string | undefined {
     // Inputs are ranked by trustworthiness: a `location` field is exhausted
     // against the whole table before a description gets a say, so "Berlin;

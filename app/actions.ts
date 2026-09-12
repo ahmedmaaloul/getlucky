@@ -61,11 +61,17 @@ export interface JobsResult {
  * not set. Without GEMINI_API_KEY — or when the daily budget is spent — search
  * still works, just without synonym expansion.
  */
-async function enhanceQuery(
-    query: string,
-    filters: JobSearchFilters,
-): Promise<{ filters: JobSearchFilters; quotaExceeded: boolean; enhanced: boolean }> {
-    if (!process.env.GEMINI_API_KEY) return { filters, quotaExceeded: false, enhanced: false };
+interface Enhancement {
+    filters: JobSearchFilters;
+    /** Expanded terms, OR-matched. Empty when no expansion happened. */
+    anyTerms: string[];
+    quotaExceeded: boolean;
+    enhanced: boolean;
+}
+
+async function enhanceQuery(query: string, filters: JobSearchFilters): Promise<Enhancement> {
+    const untouched: Enhancement = { filters, anyTerms: [], quotaExceeded: false, enhanced: false };
+    if (!process.env.GEMINI_API_KEY) return untouched;
 
     try {
         await checkAiRateLimit();
@@ -75,21 +81,32 @@ async function enhanceQuery(
 
         const next: JobSearchFilters = { ...filters };
         // Never override something the visitor chose themselves.
-        if (!next.seniority && analysis.filters?.seniority) {
-            next.seniority = analysis.filters.seniority as Seniority;
+        if (!next.seniority && analysis.filters.seniority) next.seniority = analysis.filters.seniority;
+        if (!next.country && analysis.filters.country) next.country = analysis.filters.country;
+        if (!next.language && analysis.filters.language) next.language = analysis.filters.language;
+        if (!next.employmentType && analysis.filters.employmentType) {
+            next.employmentType = analysis.filters.employmentType;
         }
-        if (!next.country && analysis.filters?.country) next.country = analysis.filters.country;
-        if (!next.language && analysis.filters?.language) next.language = analysis.filters.language;
-        if (next.visaSponsorship === undefined && analysis.filters?.visaSponsorship) {
+        if (next.visaSponsorship === undefined && analysis.filters.visaSponsorship) {
             next.visaSponsorship = true;
         }
+        if (next.remote === undefined && analysis.filters.remote) next.remote = true;
 
-        return { filters: next, quotaExceeded: false, enhanced: true };
+        // Only claim an expansion when the model actually added something; it
+        // often returns the query alone, and the UI should not say otherwise.
+        const anyTerms = analysis.keywords.length > 1 ? analysis.keywords : [];
+
+        return {
+            filters: next,
+            anyTerms,
+            quotaExceeded: false,
+            enhanced: anyTerms.length > 0 || JSON.stringify(next) !== JSON.stringify(filters),
+        };
     } catch (error) {
-        if (error instanceof RateLimitError) return { filters, quotaExceeded: true, enhanced: false };
+        if (error instanceof RateLimitError) return { ...untouched, quotaExceeded: true };
 
         console.error('[actions] AI enhancement failed, continuing without it', error);
-        return { filters, quotaExceeded: false, enhanced: false };
+        return untouched;
     }
 }
 
@@ -109,15 +126,15 @@ export async function getJobs(query?: string, filters: UiFilters = {}): Promise<
             remote: filters.remote ? true : undefined,
         };
 
-        const { filters: effective, quotaExceeded, enhanced } = base.query
+        const { filters: effective, anyTerms, quotaExceeded, enhanced } = base.query
             ? await enhanceQuery(base.query, base)
-            : { filters: base, quotaExceeded: false, enhanced: false };
+            : { filters: base, anyTerms: [] as string[], quotaExceeded: false, enhanced: false };
 
-        // The cache key is the effective query, so the AI pass is paid for once
-        // per distinct search rather than once per page of results.
-        const key = `jobs:${JSON.stringify(effective)}`;
+        // The cache key covers the expanded terms too, so the AI pass is paid
+        // for once per distinct search rather than once per page of results.
+        const key = `jobs:${JSON.stringify(effective)}:${anyTerms.join('|')}`;
         const response = await cached(key, CACHE_TTL_MS, () =>
-            searchJobs({ ...effective, limit: POOL_SIZE }),
+            searchJobs({ ...effective, anyTerms, limit: POOL_SIZE }),
         );
 
         const page = response.jobs.slice(skip, skip + take);
