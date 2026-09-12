@@ -1,10 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Search, Globe, FileText, Sparkles, Clover, Zap } from "lucide-react";
+import { Globe, Sparkles, Clover, Zap } from "lucide-react";
 import { JobList } from "@/components/job-list";
 
 export default function Home() {

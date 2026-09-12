@@ -4,7 +4,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Globe, Linkedin, ShieldAlert, Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowRight, Globe, ShieldAlert, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function AboutPage() {
     return (
@@ -28,7 +28,7 @@ export default function AboutPage() {
                         <span className="text-primary">Underdogs</span>
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        The job market is broken. We're here to fix it, one lucky break at a time.
+                        The job market is broken. We&apos;re here to fix it, one lucky break at a time.
                     </p>
                 </motion.div>
 
@@ -40,13 +40,13 @@ export default function AboutPage() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
                     >
-                        <h2 className="text-3xl font-bold mb-6">The "Blue Giant" Problem</h2>
+                        <h2 className="text-3xl font-bold mb-6">The &quot;Blue Giant&quot; Problem</h2>
                         <div className="space-y-4 text-lg text-muted-foreground">
                             <p>
-                                Hi, I'm <span className="text-foreground font-semibold">Ahmed Maaloul</span>. As a graduate engineer, I faced the same wall you're facing now.
+                                Hi, I&apos;m <span className="text-foreground font-semibold">Ahmed Maaloul</span>. As a graduate engineer, I faced the same wall you&apos;re facing now.
                             </p>
                             <p>
-                                The "Blue Website" promised connection, but delivered a pay-to-win game. Ghost jobs, algorithmic bias, and premium paywalls turned job hunting into a casino where the house always wins.
+                                The &quot;Blue Website&quot; promised connection, but delivered a pay-to-win game. Ghost jobs, algorithmic bias, and premium paywalls turned job hunting into a casino where the house always wins.
                             </p>
                         </div>
                     </motion.div>
@@ -145,7 +145,7 @@ export default function AboutPage() {
                         <h3 className="text-2xl font-bold mb-2">Ahmed Maaloul</h3>
                         <p className="text-primary font-medium mb-6">Founder & Engineer</p>
                         <p className="text-muted-foreground mb-8">
-                            "I'm just an engineer trying to make the world a little bit fairer for builders like us."
+                            &quot;I&apos;m just an engineer trying to make the world a little bit fairer for builders like us.&quot;
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">

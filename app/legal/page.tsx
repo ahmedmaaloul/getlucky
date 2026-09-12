@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Info, Server, Code } from "lucide-react";
+import { Shield, Info, Code } from 'lucide-react';
 
 export default function LegalPage() {
     return (
@@ -26,7 +26,7 @@ export default function LegalPage() {
                             <strong>GetLucky</strong> is an automated aggregator built with Next.js 15, Tailwind CSS, and a custom scraping engine.
                         </p>
                         <p>
-                            It solves the problem of "tab fatigue" by unifying job listings from multiple fragmented sources into a single, high-performance interface.
+                            It solves the problem of &quot;tab fatigue&quot; by unifying job listings from multiple fragmented sources into a single, high-performance interface.
                         </p>
                     </CardContent>
                 </Card>

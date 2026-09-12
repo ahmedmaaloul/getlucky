@@ -13,7 +13,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import { rankJobsForProfile, type CandidateProfile } from '../matching';
-import { ATS_SOURCES, SOURCES, getSource } from '../sources/registry';
+import { ATS_SOURCES, SOURCES } from '../sources/registry';
 import { getJobById, searchJobs } from '../sources/search';
 import type { EmploymentType, Seniority } from '../sources/types';
 import { formatJobDetail, formatMatches, formatSearchResponse } from './format';

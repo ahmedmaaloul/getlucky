@@ -49,3 +49,9 @@ next-env.d.ts
 # SQLite database
 *.db
 *.db-journal
+
+# Built MCP server bundle
+/mcp/dist
+
+# Test coverage
+/coverage

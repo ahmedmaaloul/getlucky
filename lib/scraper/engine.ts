@@ -1,7 +1,7 @@
-import { chromium, Browser, Page } from 'playwright';
+import { chromium } from 'playwright';
 import { JobListing, ScraperConfig } from './types';
 import { JobProcessor } from './processor';
-import { getRandomDelay, getRandomUserAgent, sleep, withRetry } from './utils';
+import { getRandomUserAgent } from './utils';
 
 export class JobScraperEngine {
     async scrape(config: ScraperConfig, keyword?: string): Promise<JobListing[]> {
@@ -34,7 +34,7 @@ export class JobScraperEngine {
             // Simple wait for list
             try {
                 await page.waitForSelector(config.selectors.list, { timeout: 10000 });
-            } catch (e) {
+            } catch {
                 console.log(`List selector ${config.selectors.list} not found.`);
             }
 
@@ -73,8 +73,8 @@ export class JobScraperEngine {
                             language: processed.language
                         });
                     }
-                } catch (e) {
-                    // ignore item error
+                } catch {
+                    // One malformed card must not abort the page
                 }
             }
 
@@ -87,7 +87,7 @@ export class JobScraperEngine {
         return jobs;
     }
 
-    private async scrapeApi(config: ScraperConfig): Promise<JobListing[]> {
+    private async scrapeApi(_config: ScraperConfig): Promise<JobListing[]> {
         // Placeholder for API scraping logic
         return [];
     }

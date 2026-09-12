@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Loader2, Lock, Search, Sparkles } from 'lucide-react';
 
@@ -53,8 +53,8 @@ const COUNTRIES = [
 export function JobList() {
     const [jobs, setJobs] = useState<NormalizedJob[]>([]);
     const [meta, setMeta] = useState<Omit<JobsResult, 'data'> | null>(null);
-    const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [isFetching, startFetch] = useTransition();
 
     const [query, setQuery] = useState('');
     const [submittedQuery, setSubmittedQuery] = useState('');
@@ -67,37 +67,57 @@ export function JobList() {
     const [skip, setSkip] = useState(0);
     const [showQuotaDialog, setShowQuotaDialog] = useState(false);
 
-    const load = useCallback(
-        async (nextSkip: number, append: boolean) => {
-            if (append) setLoadingMore(true);
-            else setLoading(true);
+    const filters = {
+        country,
+        language,
+        seniority,
+        visaSponsorship: visaOnly,
+        remote: remoteOnly,
+    };
 
+    // A filter change restarts pagination from the top. `cancelled` guards
+    // against a slow earlier request landing after a newer one and overwriting
+    // results the visitor has already moved on from.
+    useEffect(() => {
+        let cancelled = false;
+
+        startFetch(async () => {
             const result = await getJobs(submittedQuery, {
                 country,
                 language,
                 seniority,
                 visaSponsorship: visaOnly,
                 remote: remoteOnly,
-                skip: nextSkip,
+                skip: 0,
                 take: PAGE_SIZE,
             });
+            if (cancelled) return;
 
             const { data, ...rest } = result;
-            setJobs((previous) => (append ? [...previous, ...data] : data));
+            setJobs(data);
             setMeta(rest);
-            setSkip(nextSkip + PAGE_SIZE);
+            setSkip(PAGE_SIZE);
             if (result.quotaExceeded) setShowQuotaDialog(true);
+        });
 
-            setLoading(false);
-            setLoadingMore(false);
-        },
-        [submittedQuery, country, language, seniority, visaOnly, remoteOnly],
-    );
+        return () => {
+            cancelled = true;
+        };
+    }, [submittedQuery, country, language, seniority, visaOnly, remoteOnly]);
 
-    // Any filter change restarts pagination from the top.
-    useEffect(() => {
-        void load(0, false);
-    }, [load]);
+    /** "Load more" appends; it runs from a click, never from an effect. */
+    async function loadMore() {
+        setLoadingMore(true);
+        const result = await getJobs(submittedQuery, { ...filters, skip, take: PAGE_SIZE });
+
+        const { data, ...rest } = result;
+        setJobs((previous) => [...previous, ...data]);
+        setMeta(rest);
+        setSkip((previous) => previous + PAGE_SIZE);
+        setLoadingMore(false);
+    }
+
+    const loading = isFetching && jobs.length === 0;
 
     const degraded = meta?.sources.filter((source) => source.error) ?? [];
 
@@ -250,7 +270,7 @@ export function JobList() {
                             <Button
                                 variant="outline"
                                 size="lg"
-                                onClick={() => void load(skip, true)}
+                                onClick={() => void loadMore()}
                                 disabled={loadingMore}
                                 className="rounded-full px-8 h-12 bg-background/50 backdrop-blur hover:bg-foreground hover:text-background transition-all border-border/40 font-medium"
                             >

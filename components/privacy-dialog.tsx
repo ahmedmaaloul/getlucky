@@ -37,7 +37,7 @@ export function PrivacyDialog() {
                             <h4 className="font-medium text-sm">No Cookies</h4>
                             <p className="text-xs text-muted-foreground mt-1">
                                 We do not use tracking cookies, analytics, or third-party pixels.
-                                We respect your "Do Not Track" signals by default.
+                                We respect your &quot;Do Not Track&quot; signals by default.
                             </p>
                         </div>
                     </div>

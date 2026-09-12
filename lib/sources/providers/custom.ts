@@ -30,8 +30,8 @@ const SOURCE_ID = 'custom';
  */
 export async function loadLocalConfigs(): Promise<ScraperConfig[]> {
     try {
-        const module = await import('../../scraper/configs.local');
-        const configs = (module as { localScraperConfigs?: ScraperConfig[] }).localScraperConfigs;
+        const local = await import('../../scraper/configs.local');
+        const configs = (local as { localScraperConfigs?: ScraperConfig[] }).localScraperConfigs;
         return Array.isArray(configs) ? configs : [];
     } catch {
         return [];
