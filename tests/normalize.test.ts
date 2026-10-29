@@ -107,6 +107,36 @@ describe('inferEmploymentType', () => {
         expect(inferEmploymentType('Part-time Designer')).toBe('Part-time');
     });
 
+    it('treats permanence as outranking the word "contract"', () => {
+        // Regression: an "Indefinite contract" is a permanent role, but the
+        // generic `contract` token matched first and reported the opposite.
+        expect(inferEmploymentType('Indefinite contract (unbefristeter arbeitsvertrag)')).toBe('Full-time');
+        expect(inferEmploymentType('Permanent contract (onbepaalde tijd)')).toBe('Full-time');
+        expect(inferEmploymentType('Contrat à durée indéterminée')).toBe('Full-time');
+    });
+
+    it('does not let "unbefristet" match the fixed-term pattern it contains', () => {
+        expect(inferEmploymentType('Unbefristeter arbeitsvertrag')).toBe('Full-time');
+        expect(inferEmploymentType('Befristeter arbeitsvertrag')).toBe('Contract');
+    });
+
+    it('reads German, French and Dutch contract vocabulary', () => {
+        // Arbeitnow is a German board; matching only English left roughly a
+        // fifth of its feed unclassified.
+        expect(inferEmploymentType('Teilzeitbeschäftigung')).toBe('Part-time');
+        expect(inferEmploymentType('Deeltijdcontract')).toBe('Part-time');
+        expect(inferEmploymentType('Praktikum')).toBe('Internship');
+        expect(inferEmploymentType('Ausbildung')).toBe('Internship');
+        expect(inferEmploymentType('Selbstständiger / freelancer')).toBe('Freelance');
+        expect(inferEmploymentType('Cdd - contrat à durée déterminée')).toBe('Contract');
+        expect(inferEmploymentType('Interim')).toBe('Temporary');
+    });
+
+    it('keeps a fixed term fixed even when it is also full time', () => {
+        expect(inferEmploymentType('fulltime fixed term')).toBe('Contract');
+        expect(inferEmploymentType('fulltime permanent')).toBe('Full-time');
+    });
+
     it('ignores weak signals in body text', () => {
         // Regression: "temporary" in a benefits paragraph relabelled a director role.
         expect(inferEmploymentType('Engineering Director', 'temporary housing is provided')).toBeUndefined();

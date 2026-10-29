@@ -190,13 +190,45 @@ export function inferSeniority(title: string, description?: string): Seniority |
     return undefined;
 }
 
+/**
+ * Contract-shape vocabulary, in priority order.
+ *
+ * Order carries meaning here, and getting it wrong inverts the answer. A
+ * "Permanent contract", an "Indefinite contract" and a "Contrat à durée
+ * indéterminée" all contain the word *contract* while describing the opposite
+ * of fixed-term work, so permanence is tested before the generic token.
+ *
+ * German, French and Dutch terms are first-class rather than an afterthought:
+ * on the Arbeitnow feed, "Unbefristeter Arbeitsvertrag" alone accounts for
+ * roughly a fifth of postings, and matching only English left all of them
+ * unclassified.
+ *
+ * Compounds are matched with a trailing \w* instead of \b, because German
+ * glues words together — "Teilzeitbeschäftigung" never ends at "teilzeit".
+ */
 const EMPLOYMENT_PATTERNS: ReadonlyArray<readonly [EmploymentType, RegExp]> = [
-    ['Internship', /\b(intern|internship|werkstudent|working student|stage|stagiaire|alternance)\b/i],
-    ['Freelance', /\b(freelance|freelancer)\b/i],
-    ['Contract', /\b(contract|contractor|b2b|fixed[- ]term|cdd)\b/i],
-    ['Part-time', /\b(part[- ]time|teilzeit|temps partiel)\b/i],
-    ['Temporary', /\b(temporary|seasonal)\b/i],
-    ['Full-time', /\b(full[- ]time|vollzeit|permanent|cdi)\b/i],
+    [
+        'Internship',
+        /\b(intern|internship|werkstudent|working student|praktikum|praktikant\w*|stage|stagiaire|alternance|apprenticeship|ausbildung|lehrstelle)\b/i,
+    ],
+    [
+        'Freelance',
+        /\b(freelance\w*|freiberufl\w*|selbst(ä|ae)ndig\w*|zelfstandig\w*|independent contractor)\b/i,
+    ],
+    // Before Contract: "Deeltijdcontract" is part-time work, not a fixed term.
+    ['Part-time', /\b(part[- ]?time|teilzeit\w*|temps partiel|deeltijd\w*)\b/i],
+    // Before Contract: permanence outranks the word "contract".
+    [
+        'Full-time',
+        /\b(permanent|unbefristet\w*|festanstellung|indefinite|onbepaalde tijd|cdi|contrat à durée indéterminée)\b/i,
+    ],
+    // (?<!un) so that "unbefristet" — the opposite — cannot match here.
+    [
+        'Contract',
+        /\b(contract(or)?|(?<!un)befristet\w*|bepaalde tijd|b2b|fixed[- ]term|cdd|contrat à durée déterminée|werkvertrag)\b/i,
+    ],
+    ['Temporary', /\b(temporary|interim|seasonal|zeitarbeit|leiharbeit)\b/i],
+    ['Full-time', /\b(full[- ]?time|vollzeit\w*|voltijd\w*)\b/i],
 ];
 
 /**
