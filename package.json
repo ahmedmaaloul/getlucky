@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "build:mcp": "esbuild mcp/src/stdio.ts --bundle --platform=node --format=esm --target=node20 --packages=external --outfile=mcp/dist/index.mjs && chmod +x mcp/dist/index.mjs",
+    "check:sources": "esbuild scripts/check-sources.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/check-sources.mjs --log-level=error && node node_modules/.cache/check-sources.mjs",
+    "dev": "next dev",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "mcp": "npm run build:mcp && node mcp/dist/index.mjs",
+    "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:mcp": "esbuild mcp/src/stdio.ts --bundle --platform=node --format=esm --target=node20 --packages=external --outfile=mcp/dist/index.mjs && chmod +x mcp/dist/index.mjs",
-    "mcp": "npm run build:mcp && node mcp/dist/index.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

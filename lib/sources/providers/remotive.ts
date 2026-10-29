@@ -2,6 +2,7 @@ import { fetchJson } from '../http';
 import {
     cleanLabel,
     extractTags,
+    matchesQuery,
     inferCountry,
     inferEmploymentType,
     inferLanguage,
@@ -60,8 +61,11 @@ export const remotive: JobSource = {
     attribution: ATTRIBUTION,
 
     async fetch(options = {}) {
-        // Remotive filters server-side, so we push the query down rather than
-        // pulling the whole feed and discarding most of it.
+        // The query is still pushed down — it costs nothing and helps when the
+        // endpoint honours it — but the result is re-checked locally below.
+        // Remotive's `search` parameter silently stopped filtering at some
+        // point: asking for "nurse" returns the same twelve engineering roles
+        // as asking for nothing. An upstream filter is a hint, never a promise.
         const url = new URL(ENDPOINT);
         if (options.query) url.searchParams.set('search', options.query);
         if (options.limit) url.searchParams.set('limit', String(options.limit));
@@ -75,6 +79,10 @@ export const remotive: JobSource = {
             if (!title || entry.id === undefined) continue;
 
             const location = cleanLabel(entry.candidate_required_location) || undefined;
+
+            if (!matchesQuery(options.query, title, entry.company_name, description, entry.tags?.join(' '))) {
+                continue;
+            }
 
             jobs.push({
                 id: `remotive:${entry.id}`,
