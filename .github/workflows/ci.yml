@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Advisories land against code that has not changed. Without a schedule, a
+  # quiet month means a month of unaudited dependencies in a live deployment.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
 
 # A newer push to the same branch makes an in-flight run obsolete.
 concurrency:

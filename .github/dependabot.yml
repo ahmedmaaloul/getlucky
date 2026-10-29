@@ -1,0 +1,33 @@
+# Seven weeks without a commit meant seven weeks without a CI run, and three
+# critical Next.js RCEs sat in the deployed site that whole time. Dependabot
+# raises the pull request whether or not anyone is working on the project.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the routine churn, so the signal is not buried in noise.
+      minor-and-patch:
+        update-types: [minor, patch]
+      # Radix ships many packages that move together.
+      radix:
+        patterns: ['@radix-ui/*']
+    labels: [dependencies]
+
+  - package-ecosystem: npm
+    directory: /mcp
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [dependencies, mcp]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencies]

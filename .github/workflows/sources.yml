@@ -1,0 +1,53 @@
+name: Source health
+
+# The code can stay correct while the data stops arriving. This is the only
+# thing here that touches the network, and it runs on a schedule rather than
+# on push, because upstream APIs change when nobody is committing.
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'lib/sources/**'
+      - 'scripts/check-sources.ts'
+
+jobs:
+  check:
+    name: Check upstream job APIs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Check sources
+        id: check
+        run: |
+          set -o pipefail
+          npm run check:sources 2>&1 | tee report.txt
+
+      - name: Open or update an issue when a source is unhealthy
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="Source health check failing"
+          body=$(printf 'The scheduled upstream check failed.\n\n```\n%s\n```\n\n[Run](%s/%s/actions/runs/%s)\n' \
+            "$(tail -40 report.txt)" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+
+          # Reuse the open issue rather than filing a new one every Monday.
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label sources
+          fi
