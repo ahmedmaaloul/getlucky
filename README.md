@@ -198,16 +198,37 @@ predictable hash that could be brute-forced across the IPv4 space.
 ## Development
 
 ```bash
-npm run dev          # app on http://localhost:3000
-npm test             # 72 tests, all pure — no network
+npm run dev            # app on http://localhost:3000
+npm test               # 83 tests, all pure — no network
 npm run typecheck
 npm run lint
-npm run build:mcp    # bundle the stdio MCP server
-npm run mcp          # build it and run it on stdio
+npm run check:sources  # hit the real APIs and report their health
+npm run build:mcp      # bundle the stdio MCP server
+npm run mcp            # build it and run it on stdio
 ```
 
 Tests are deliberately network-free, so CI cannot go red because a job board
 happened to be down.
+
+### Keeping it alive
+
+The failure mode for a project like this is not a bug — it is silence. The code
+stays correct while an upstream feed changes shape, shrinks, or quietly stops
+honouring a filter, and nothing fails loudly enough to notice.
+
+So the network checks live apart from the unit suite and run on a schedule:
+
+- **`npm run check:sources`** asks every source for real postings and verifies
+  the fields the UI and the MCP tools actually read. It also asks each one for
+  a term no posting can contain and requires an empty answer — a source that
+  silently ignores a filter is worse than one that is down, because the wrong
+  results look right. This is not hypothetical: Remotive's `search` parameter
+  stopped filtering at some point, and "nurse" was returning engineering jobs.
+- **Weekly CI** runs the full suite and `npm audit` even when nobody has
+  committed. Advisories land against code that has not changed — a quiet month
+  once left three critical unauthenticated RCEs sitting in the live deployment.
+- **Dependabot** raises grouped dependency pull requests whether or not anyone
+  is working on the project.
 
 ### Adding a source
 
